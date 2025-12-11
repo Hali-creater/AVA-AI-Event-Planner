@@ -80,6 +80,12 @@ if 'current_question_index' not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+if 'q_and_a' not in st.session_state:
+    st.session_state.q_and_a = []
+
+if 'summary_sent' not in st.session_state:
+    st.session_state.summary_sent = False
+
 # --- App Body ---
 st.title("Ava - Your Elite Events Planning Assistant")
 
@@ -94,17 +100,28 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 # --- Chat Logic ---
-if prompt := st.chat_input("Your response..."):
+questions = st.session_state.questions
+index = st.session_state.current_question_index
+conversation_over = questions and index >= len(questions)
+
+if prompt := st.chat_input("Your response...", disabled=conversation_over):
     # Add user message to chat history
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
+    # Get current questions and index
+    questions = st.session_state.questions
+    index = st.session_state.current_question_index
+
+    # Store the question and answer pair if a question was asked
+    if index > 0 and (index - 1) < len(questions):
+        last_question = questions[index - 1]
+        st.session_state.q_and_a.append({"question": last_question, "answer": prompt})
+
     # Generate and display bot response
     with st.chat_message("assistant"):
         response = ""
-        questions = st.session_state.questions
-        index = st.session_state.current_question_index
 
         if not questions:
             response = "I'm sorry, I'm having trouble loading my questions at the moment. Please try again later."
@@ -114,7 +131,26 @@ if prompt := st.chat_input("Your response..."):
             response = f"{acknowledgement}{questions[index]}"
             st.session_state.current_question_index += 1
         else:
-            response = "Thank you for providing all the information. Our event planners will be in touch with you shortly!"
+            # All questions answered, display summary
+            summary_header = "Thank you! Here is a summary of the information you provided:"
+            st.session_state.messages.append({"role": "assistant", "content": summary_header})
+            st.markdown(summary_header)
+
+            summary_text = ""
+            for pair in st.session_state.q_and_a:
+                summary_text += f"**Q:** {pair['question']}\n\n**A:** {pair['answer']}\n\n---\n"
+
+            st.session_state.messages.append({"role": "assistant", "content": summary_text})
+            st.markdown(summary_text)
+            response = "Please review the summary above. If everything is correct, please click 'Send to Planner'."
 
         st.markdown(response)
         st.session_state.messages.append({"role": "assistant", "content": response})
+
+# Display the button if the conversation is over and the summary hasn't been sent
+if conversation_over and not st.session_state.summary_sent:
+    if st.button("Send to Planner"):
+        final_confirmation = "Thank you! Your details have been sent to our expert event planners. They will be in touch with you shortly."
+        st.session_state.messages.append({"role": "assistant", "content": final_confirmation})
+        st.session_state.summary_sent = True
+        st.experimental_rerun()
