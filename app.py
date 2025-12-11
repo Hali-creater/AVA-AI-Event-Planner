@@ -34,22 +34,38 @@ def load_questions(prompt_file="prompt.md"):
 st.set_page_config(page_title="Ava - AI Receptionist", layout="centered")
 
 # --- Styling ---
-# Inject Bootstrap CDN
 st.markdown("""
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-""", unsafe_allow_html=True)
-
-# Custom CSS for a chat-like appearance
-st.markdown("""
     <style>
-        .chat-container {
-            max-width: 700px;
-            margin: auto;
+        body {
+            font-family: sans-serif;
+        }
+        .stApp {
+            background-color: #f4f4f4;
         }
         .stChatMessage {
             border-radius: 10px;
-            padding: 10px;
+            padding: 15px;
             margin-bottom: 10px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border: 1px solid #ddd;
+            max-width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        h1 {
+            text-align: center;
+            color: #4a4a4a;
+        }
+        .stChatInput {
+            background-color: #fff;
+            border-top: 1px solid #ddd;
+            padding: 10px;
+        }
+        .stTextInput > div > div > input {
+            border-radius: 20px;
+            border: 1px solid #ddd;
         }
     </style>
 """, unsafe_allow_html=True)
